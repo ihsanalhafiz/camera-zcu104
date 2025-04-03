@@ -27,9 +27,11 @@ int main() {
             break;
         }
 
-        // --- Detect square on white paper ---
+        // Convert captured frame to grayscale for processing and display
         cv::Mat gray;
         cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+
+        // --- Detect square on white paper ---
         cv::Mat blurred;
         cv::GaussianBlur(gray, blurred, cv::Size(5, 5), 0);
         cv::Mat edged;
@@ -56,10 +58,11 @@ int main() {
             }
         }
 
+        cv::Mat warp; // 28x28 warped grayscale image
         if (!square.empty()) {
-            // Draw the detected square on the original frame
+            // Draw the detected square on the grayscale image (using a dark line)
             for (int i = 0; i < 4; i++) {
-                cv::line(frame, square[i], square[(i+1)%4], cv::Scalar(255, 0, 0), 2);
+                cv::line(gray, square[i], square[(i+1)%4], cv::Scalar(0), 2);
             }
 
             // Order the square's corners: top-left, top-right, bottom-right, bottom-left
@@ -90,17 +93,7 @@ int main() {
 
             // Compute the perspective transform and apply it
             cv::Mat M = cv::getPerspectiveTransform(ordered, dst);
-            cv::Mat warp;
             cv::warpPerspective(gray, warp, M, cv::Size(28, 28));
-
-            // Convert the warped (grayscale) image to BGR so it can be overlaid on the original frame
-            cv::Mat warpColor;
-            cv::cvtColor(warp, warpColor, cv::COLOR_GRAY2BGR);
-
-            // Overlay the small image onto the main frame (top-right corner with a 10-pixel margin)
-            int x_offset = frame.cols - warpColor.cols - 10;
-            int y_offset = 10;
-            warpColor.copyTo(frame(cv::Rect(x_offset, y_offset, warpColor.cols, warpColor.rows)));
         }
 
         // --- Update counter every second ---
@@ -110,16 +103,21 @@ int main() {
             last_tick = now;
         }
 
-        // Overlay counter text on the frame
+        // Overlay counter text on the grayscale image (using white text)
         std::string text = "Counter: " + std::to_string(counter);
         int fontFace = cv::FONT_HERSHEY_SIMPLEX;
         double fontScale = 1.0;
         int thickness = 2;
         cv::Point textOrg(20, 50);
-        cv::putText(frame, text, textOrg, fontFace, fontScale, cv::Scalar(0, 255, 0), thickness);
+        cv::putText(gray, text, textOrg, fontFace, fontScale, cv::Scalar(255), thickness);
 
-        // Display the final frame with overlayed processed image and counter
-        cv::imshow("USB Camera", frame);
+        // Display the grayscale camera feed
+        cv::imshow("Grayscale Camera", gray);
+
+        // Display the 28x28 warped grayscale image if available
+        if (!warp.empty()) {
+            cv::imshow("Warped (28x28 Grayscale)", warp);
+        }
 
         // Exit if ESC is pressed
         if (cv::waitKey(1) == 27) break;
