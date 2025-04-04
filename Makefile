@@ -10,10 +10,10 @@ TARGET = camera
 SRCS = camera.cpp
 
 # Compiler flags
-CXXFLAGS = -O2 -std=c++11 `pkg-config --cflags opencv4`
+CXXFLAGS = -O2 -std=c++11 `pkg-config --cflags opencv4` -pthread
 
 # Linker flags
-LDFLAGS = `pkg-config --libs opencv4`
+LDFLAGS = `pkg-config --libs opencv4` -pthread
 
 # Default target
 all: $(TARGET)
