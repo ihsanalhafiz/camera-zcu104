@@ -16,7 +16,7 @@ CXXFLAGS = -O2 -std=c++11 `pkg-config --cflags opencv4` -pthread
 LDFLAGS = `pkg-config --libs opencv4` -pthread
 
 # Default target
-all: $(TARGET)
+all: clean $(TARGET)
 
 $(TARGET): $(SRCS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS) $(LDFLAGS)
